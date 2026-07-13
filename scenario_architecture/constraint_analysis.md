@@ -17,6 +17,33 @@ Whereas, for the edge AI use case, we just need to send a single message to the 
 Hence bandwidth is a very crucial point to analyze.
 
 #### Quantitative Analysis
+Given: Failure scenario, 1 degree C rise per minute.
+System requirement: Detect and alert within 90 seconds of a fault signature appearing in sensor data.
+##### Cloud use case:
+Assuming temperature readings at 1 Hz and vibration readings at 500 Hz, and door events as discrete events:
+means 1 count per second for temperature reading (assuming float32 = 4 bytes)
+also, 500 counts per second for vibration reading (assuming float32 = 4 bytes)
+door events as discrete (open/close) = boolean (1 bit), assume 32 events per day
+Assume data calculation per truck sent per day
+= [(1 count per second * 4 bytes, for temperature)
+  + (500 counts per second * 4 bytes, for vibration * 3 axes)]
+  * 60 seconds * 60 minutes * 24 hours
+  + (32 counts per day, for door events * 1 bit)
+= [4 + 6000] * 86400 + 32
+= 518745600 + 32
+= 518745632 bytes
+= approx 0.483 GB per truck
+for pilot (85 trucks) ==> 41.065 GB, if successful, for 265 vehicles ==> 128.026 GB
+This means that per day data itself is exploding in size and time.
+##### Edge Use Case:
+Data calculation per truck per day, assuming 200 updates per day depending on classification and judgment.
+
+= (4 bytes for temperature + 4*3 bytes for vibration + 1 bit for door close status) * 200
+= (4 + 12 + 1) * 200
+= (17) * 200
+= 3400 bytes per truck
+for pilot (85 trucks) ==> 289000 bytes, if successful, for 265 vehicles ==> 901000 bytes = approx 8.391216397285461e-4 GB --> 99% reduction in data transfer requirement
+Hence, **Edge AI saves bandwidth**.
 
 ### Latency
 #### Why Edge AI is required here?
