@@ -1,6 +1,6 @@
 # Hardware Justification
 
-## Constraint Analysis for the Hardware Justifications to be done
+## Task B1 — Constraint Triangle Application: Constraint Analysis for the Hardware Justifications to be done
 
 ### Option 1 - Raspberry Pi 5 (8 GB) + AI HAT+ (13 TOPS Hailo-8L):
 
@@ -83,3 +83,29 @@ Given the ₹28,00,000 cost of a single cargo spoilage event, choosing this sole
 
 ## Conclusion - Selection of Hardware and Justification
 Ultimately, the truck's strict 10W power limit makes power the deciding constraint, immediately ruling out the 15W Jetson. And while the STM32 is incredibly cheap and efficient, it simply cannot run the required Linux software stack. This makes the **Raspberry Pi 5 + AI HAT+** the only practical choice that guarantees the 90-second safety SLA while satisfying both the budget and the electrical constraints.
+
+## Task B2 — Arithmetic Intensity and Roofline Analysis
+
+### Calculation of Arithmetic Intensity
+Model details:
+Model performs: 45 MFLOPs per inference
+Memory used: 18 MB (weights + activations)
+Arithmetic Intensity = 45 MFLOPs / 18 MB
+= 45 * 10^6 FLOPs / 18 * 10^6 bytes
+= 2.5 FLOPs / byte
+
+### Roofline Analysis
+Ridge point (ops/byte ratio) 
+= (Peak Compute Performance) / (Peak Memory Bandwidth)
+= 16 GFLOP/s / 12 GB/s
+= 1.33 FLOPs / byte
+
+From above, Arithmetic Intensity is greater than the ridge point, hence Roofline Analysis shows that the model is compute bound.
+
+### Proposed Optimizations
+Because the model is compute-bound, memory optimizations (like cache tuning) will not improve latency. We must instead reduce the computational workload ($W$) or raise the hardware compute ceiling ($\pi$):
+
+*   **Model Quantization (INT8):** Converting FP32 weights to INT8 reduces the total arithmetic work and better utilizes the Pi 5's NEON SIMD instructions for faster vector processing.
+*   **Hardware Offloading (NPU):** Shifting inference from the CPU (16 GFLOP/s) to the Hailo-8L AI HAT+ (13 TOPS) fundamentally raises the roofline's compute ceiling. This eliminates the compute bottleneck entirely and easily secures the 90-second SLA.
+
+
