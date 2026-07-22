@@ -12,6 +12,7 @@ import numpy as np
 import os
 from collections import deque
 
+
 # --- TFLite Engine Import ---
 try:
     from tflite_runtime.interpreter import Interpreter
@@ -28,7 +29,7 @@ STATS_PATH = os.path.join(BASE_DIR, 'training_stats.npy')
 # Dynamically routes DB logs into your data_pipeline/ folder
 DB_PATH = os.path.join(os.path.dirname(BASE_DIR), 'data_pipeline', 'edge_data.db')
 
-BROKER = 'localhost'
+BROKER = os.environ.get('MQTT_BROKER', 'localhost')
 PORT = 1883
 TRUCK_ID = 'truck_LE_01'
 FEATURE_TOPIC = f'logiedge/{TRUCK_ID}/features'
@@ -36,15 +37,19 @@ FEATURE_TOPIC = f'logiedge/{TRUCK_ID}/features'
 ALERT_THRESHOLD = 3
 CLASSES = ['Normal', 'Warning', 'Critical']
 
+# 1. Read the model path from the Docker environment variable
+MODEL_PATH = os.environ.get('MODEL_PATH', 'anomaly_model.tflite')
+
+
+interpreter = Interpreter(model_path=MODEL_PATH)
+
+
 # --- Initialize Normalization Stats ---
 if not os.path.exists(STATS_PATH):
-    print(f"[WARNING] {STATS_PATH} not found. Creating dummy stats array.")
-    # 6 features: [mean_array, std_array]
-    dummy_stats = np.array([
-        [4.0, 0.3, 0.0, 0.45, 0.6, 0.0],  # Means
-        [0.5, 0.1, 0.1, 0.1,  0.2, 1.0]   # StDevs
-    ])
-    np.save(STATS_PATH, dummy_stats)
+    raise FileNotFoundError(f"[CRITICAL ERROR] Missing {STATS_PATH}. Cannot boot inference engine without normalization bounds. Run train_model.py first.")
+
+stats = np.load(STATS_PATH)
+norm_mean, norm_std = stats[0], stats[1]
 
 stats = np.load(STATS_PATH)
 norm_mean, norm_std = stats[0], stats[1]
@@ -93,7 +98,7 @@ def on_message(client, userdata, msg):
         
         # 1. Apply Normalization
         # EXPERIMENT FLAG: Swap with (features - (norm_mean + (3 * norm_std))) / norm_std for 3-sigma offset test
-        x_norm = (features - norm_mean) / norm_std
+        x_norm = ((features - norm_mean) / norm_std).astype(np.float32)
         
         # 2. Run Inference
         if interpreter:
@@ -138,6 +143,15 @@ def on_message(client, userdata, msg):
             print(f"\n  *** SUSTAINED ALERT FIRED ***")
             print(f"  {ALERT_THRESHOLD} consecutive Critical readings on {TRUCK_ID}.")
             print(f"  DRIVER NOTIFICATION: Pull over safely and check cargo integrity.\n")
+
+        # 6. Publish inference result to the requested topic (Task D2 Rubric)
+        publish_topic = f"logibridge/trucks/{TRUCK_ID}/inference"
+        outbound_payload = json.dumps({
+            "timestamp": timestamp,
+            "prediction": class_id,
+            "confidence": confidence
+        })
+        client.publish(publish_topic, outbound_payload, qos=1)
 
     except Exception as e:
         print(f"[INFERENCE ERROR] Pipeline failure: {e}")
