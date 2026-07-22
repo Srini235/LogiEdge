@@ -85,7 +85,7 @@ def process_and_publish_features(client):
         vibration_buffer = [(t,v) for t, v in vibration_buffer if t >= cutoff_time]
 
         if len(temperature_buffer) < 5 or len(vibration_buffer) < 5:
-            print(f"[{time.strftime('%H:%M:%S')}] Buffering data... Temp count: {len(temp_buffer)}, Vib count: {len(vib_buffer)}")
+            print(f"[{time.strftime('%H:%M:%S')}] Buffering data... Temp count: {len(temperature_buffer)}, Vib count: {len(vibration_buffer)}")
             return
         
         t_times = [t for t, v in temperature_buffer]
@@ -96,9 +96,10 @@ def process_and_publish_features(client):
     t_smooth = moving_average(t_vals, 5)
     v_smooth = moving_average(v_vals, 5)
 
-    # 3. Feature extraction
+# 3. Feature extraction
     temp_mean = np.mean(t_smooth)
-    vib_mean = np.std(v_smooth)
+    temp_std = np.std(t_smooth)  # <--- Corrected variable name and input
+    
     # Rate of Change calculation in degrees C per minute
     duration_mins = (t_times[-1] - t_times[0]) / 60.0
     temp_roc = (t_smooth[-1] - t_smooth[0]) / duration_mins if duration_mins > 0 else 0.0
@@ -106,6 +107,7 @@ def process_and_publish_features(client):
     vib_rms = np.sqrt(np.mean(np.square(v_smooth)))
     vib_peak = np.max(v_smooth)
     vib_kurtosis = calculate_kurtosis(v_smooth)
+    
     # 4. Construct Feature Vector (6-value array)
     feature_vector = [
         float(temp_mean), 
@@ -128,7 +130,7 @@ def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id='logiedge-preprocessor')
     client.on_message = on_message
     
-    print(f"Connecting Ingestion Pipeline to Broker at {BROKER}:{PORT}...")
+    print(f"Connecting Ingestion Pipeline to Broker at {broker}:{port}...")
     client.connect(broker, port, keepalive=60)
     client.subscribe(subscriber_topics)
     client.loop_start()
