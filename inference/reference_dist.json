@@ -1,0 +1,16 @@
+{
+  "n_samples": 143,
+  "bins": [
+    "[0,0.25)",
+    "[0.25,0.50)",
+    "[0.50,0.75)",
+    "[0.75,1.0)"
+  ],
+  "distribution": [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "description": "Golden baseline generated from preprocessed clean training validation data."
+}
