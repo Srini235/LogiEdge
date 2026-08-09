@@ -1,12 +1,13 @@
 """
 train_model.py (Located in training/)
 Loads collected CSVs, calculates normalization stats from Class 0, trains the MLP, 
-and exports artifacts to the inference/ directory.
+exports artifacts to the inference/ directory, and generates the PSI baseline.
 """
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 import os
+import json
 
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -64,3 +65,40 @@ converter = tf.lite.TFLiteConverter.from_keras_model(model)
 with open(os.path.join(INFERENCE_DIR, 'anomaly_model.tflite'), 'wb') as f:
     f.write(converter.convert())
 print(f"Successfully exported anomaly_model.tflite to {INFERENCE_DIR}")
+
+# --- 7. Generate Golden Reference Distribution ---
+print("\nGenerating reference_dist.json baseline...")
+
+# Isolate strictly normal (Class 0) validation data
+X_val_clean = X_val[y_val == 0]
+
+if len(X_val_clean) == 0:
+    print("[ERROR] No Class 0 validation data available to generate baseline!")
+else:
+    # Run inferences through the trained Keras model
+    preds = model.predict(X_val_clean, verbose=0)
+    
+    # Extract confidence probability for the normal class
+    confidence_scores = preds[:, 0]
+    
+    # Calculate the statistical distribution across the 4 PSI bins
+    PSI_BINS = [0.0, 0.25, 0.50, 0.75, 1.0]
+    hist, _ = np.histogram(confidence_scores, bins=PSI_BINS)
+    
+    target_samples = len(confidence_scores)
+    ref_dist = (hist / target_samples).tolist()
+    
+    # Structure the artifact
+    reference_data = {
+        "n_samples": target_samples,
+        "bins": ["[0,0.25)", "[0.25,0.50)", "[0.50,0.75)", "[0.75,1.0)"],
+        "distribution": ref_dist,
+        "description": "Golden baseline generated from preprocessed clean training validation data."
+    }
+    
+    # Save the deployment artifact alongside the model
+    ref_path = os.path.join(INFERENCE_DIR, 'reference_dist.json')
+    with open(ref_path, "w") as f:
+        json.dump(reference_data, f, indent=2)
+        
+    print(f"Successfully generated true baseline reference_dist.json at {ref_path}")
