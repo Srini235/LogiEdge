@@ -1,0 +1,15 @@
+site_name: ML on the Edge - Assignment Group 13
+site_description: Documentation for the MLontheEdge Assignment
+nav:
+  - Home: index.md
+  - Project Overview: project_overview.md
+  - Repository Structure: structure.md
+  - Build Instructions: build_instructions.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
