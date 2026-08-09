@@ -11,6 +11,7 @@ import sqlite3
 import numpy as np
 import os
 from collections import deque
+from pathlib import Path
 
 
 # --- TFLite Engine Import ---
@@ -22,12 +23,12 @@ except ImportError:
     TFLITE_AVAILABLE = True
 
 # --- Path Resolution & Directory Configuration ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'anomaly_model.tflite')
-STATS_PATH = os.path.join(BASE_DIR, 'training_stats.npy')
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / 'anomaly_model.tflite'
+STATS_PATH = BASE_DIR / 'training_stats.npy'
 
 # Dynamically routes DB logs into your data_pipeline/ folder
-DB_PATH = os.path.join(os.path.dirname(BASE_DIR), 'data_pipeline', 'edge_data.db')
+DB_PATH = (BASE_DIR.parent / 'data_pipeline' / 'edge_data.db').resolve()
 
 BROKER = os.environ.get('MQTT_BROKER', 'localhost')
 PORT = 1883
@@ -145,7 +146,7 @@ def on_message(client, userdata, msg):
             print(f"  DRIVER NOTIFICATION: Pull over safely and check cargo integrity.\n")
 
         # 6. Publish inference result to the requested topic (Task D2 Rubric)
-        publish_topic = f"logibridge/trucks/{TRUCK_ID}/inference"
+        publish_topic = f"logiedge/trucks/{TRUCK_ID}/inference"
         outbound_payload = json.dumps({
             "timestamp": timestamp,
             "prediction": class_id,

@@ -12,6 +12,7 @@ import threading
 import numpy as np
 from collections import deque
 import os
+from pathlib import Path
 
 # --- TFLite Import (with Fallback) ---
 try:
@@ -25,6 +26,11 @@ except ImportError:
 broker = 'localhost'
 port = 1883
 truck_id = 'truck_LE_01'
+
+# path configuration
+BASE_DIR = Path(__file__).resolve().parent
+
+CONF_PATH = BASE_DIR / "dev.conf"
 
 # Topics
 subscriber_topics = [

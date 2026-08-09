@@ -8,9 +8,9 @@
   ],
   "distribution": [
     0.0,
-    0.04,
-    0.11666666666666667,
-    0.8433333333333334
+    0.043333333333333335,
+    0.12666666666666668,
+    0.83
   ],
-  "description": "Reference from 300 Normal-class samples"
+  "description": "Reference distribution from 300 Normal-class inferences (clean cold-chain operation)"
 }

@@ -17,11 +17,12 @@ import time
 import os
 import sys
 import numpy as np
+from pathlib import Path
 
 # Add paths
-OPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INFERENCE_DIR = os.path.join(OPT_DIR, '..', 'inference')
-TRAINING_DIR = os.path.join(OPT_DIR, '..', 'training')
+OPT_DIR = Path(__file__).resolve().parent
+INFERENCE_DIR = OPT_DIR / '..' / 'inference'
+TRAINING_DIR = OPT_DIR / '..' / 'training'
 
 # Import tflite properly
 try:

@@ -12,7 +12,17 @@ import threading
 import numpy as np
 import os
 from collections import deque
+import logging
 import sys
+from pathlib import Path
+
+# 1. Initialize this at the very top of your script
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    # Explicitly routing to stderr guarantees zero buffering on any Linux OS
+    handlers=[logging.StreamHandler(sys.stderr)] 
+)
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
@@ -23,16 +33,17 @@ except ImportError:
     from tensorflow.lite.python.interpreter import Interpreter
 
 # --- Configuration ---
-REFERENCE_PATH = 'reference_dist.json'
+BASE_DIR = Path(__file__).resolve().parent
+REFERENCE_PATH = BASE_DIR / 'reference_dist.json'
 BROKER = os.environ.get('MQTT_BROKER', 'localhost')
-TOPIC = "logibridge/trucks/+/inference"
-MODEL_PATH = os.environ.get('MODEL_PATH', 'anomaly_model.tflite')
+TOPIC = "logiedge/trucks/+/inference"
+MODEL_PATH = os.environ.get('MODEL_PATH', '../inference/anomaly_model.tflite')
 
 # PSI Bins: [0, 0.25), [0.25, 0.50), [0.50, 0.75), [0.75, 1.0]
 PSI_BINS = [0.0, 0.25, 0.50, 0.75, 1.0]
 
 # Rolling window for PSI calculation
-confidence_window = deque(maxlen=100)
+confidence_window = deque(maxlen=5)
 lock = threading.Lock()
 
 
@@ -148,20 +159,20 @@ def psi_monitor_loop():
         time.sleep(60)  # Calculate every 60 seconds
         
         with lock:
-            if len(confidence_window) < 100:
-                print(f"[MONITOR] Buffering... ({len(confidence_window)}/100 inferences)")
+            if len(confidence_window) < 5:
+                print(f"[MONITOR] Buffering... ({len(confidence_window)}/5 inferences)")
                 continue
             
             # Compute distribution across 4 bins
             hist, _ = np.histogram(list(confidence_window), bins=PSI_BINS)
-            actual_dist = hist / 100.0
+            actual_dist = hist / 5.0
             
             psi = calculate_psi(expected_dist, actual_dist)
             
             if psi > 0.25:
-                print(f"\n*** [LOGIBRIDGE DRIFT ALERT] PSI={psi:.3f} (Threshold > 0.25) ***\n")
+                logging.warning(f"*** [LOGIEDGE DRIFT ALERT] PSI={psi:.3f} (Threshold > 0.25) ***")
             else:
-                print(f"[MONITOR] Current PSI={psi:.3f} (Healthy)")
+                logging.info(f"Current PSI={psi:.3f} (Healthy)")
 
 
 def main():

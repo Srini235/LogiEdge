@@ -11,6 +11,10 @@ logiedge/
 import paho.mqtt.client as mqtt
 import json, time, random, math
 import argparse
+from pathlib import Path
+
+# Configuration parameters
+BASE_DIR = Path(__file__).resolve().parent
 
 # System parameters
 broker = 'localhost'
