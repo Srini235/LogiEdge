@@ -15,6 +15,7 @@ tf.random.set_seed(42)
 # Directory routing based on your tree
 BASE_DIR = os.path.dirname(__file__)
 INFERENCE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'inference')
+MONITORING_DIR = os.path.join(os.path.dirname(BASE_DIR), 'monitoring')
 
 # 1. Load Data
 try:
@@ -97,7 +98,7 @@ else:
     }
     
     # Save the deployment artifact alongside the model
-    ref_path = os.path.join(INFERENCE_DIR, 'reference_dist.json')
+    ref_path = os.path.join(MONITORING_DIR, 'reference_dist.json')
     with open(ref_path, "w") as f:
         json.dump(reference_data, f, indent=2)
         
