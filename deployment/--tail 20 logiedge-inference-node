@@ -1,0 +1,11 @@
+[0;1;32m●[0m logiedge-preprocessor.service - LogiEdge MQTT Data Preprocessor
+     Loaded: loaded (]8;;file://raspberrypi/etc/systemd/system/logiedge-preprocessor.service\/etc/systemd/system/logiedge-preprocessor.service]8;;\; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Wed 2026-08-05 20:04:53 IST; 5min ago
+ Invocation: 9b1faa4ec9d0415d8c20e20990aec4e1
+   Main PID: 2785 (python)
+      Tasks: 5[0;38:5:245m (limit: 9626)[0m
+        CPU: 2.720s
+     CGroup: /system.slice/logiedge-preprocessor.service
+             └─[0;38:5:245m2785 /home/srini/MLontheEdge_Assignment_Group_13/data_pipeline/venv/bin/python preprocessing.py[0m
+
+Aug 05 20:04:53 raspberrypi systemd[1]: Started logiedge-preprocessor.service - LogiEdge MQTT Data Preprocessor.

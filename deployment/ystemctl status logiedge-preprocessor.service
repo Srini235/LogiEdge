@@ -1,0 +1,3 @@
+○ logiedge-preprocessor.service - LogiEdge MQTT Data Preprocessor
+     Loaded: loaded (]8;;file://raspberrypi/etc/systemd/system/logiedge-preprocessor.service\/etc/systemd/system/logiedge-preprocessor.service]8;;\; [0;1;38:5:185mdisabled[0m; preset: [0;1;32menabled[0m)
+     Active: inactive (dead)

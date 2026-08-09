@@ -1,0 +1,138 @@
+---
+- name: LogiEdge OTA Deployment Playbook
+  hosts: localhost
+  connection: local
+  become: yes  # Ensures Ansible actively uses sudo to write to /opt/
+  vars:
+    target_dir: "/opt/logiedge"
+    model_src: "../inference/anomaly_model.tflite"
+    ref_src: "../monitoring/reference_dist.json"
+    # Dynamically grab the user who executed the playbook, bypassing 'root'
+    target_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+
+  tasks:
+    - name: A. Detect target hardware platform
+      ansible.builtin.set_fact:
+        target_hardware: >-
+          {% if ansible_architecture == 'x86_64' or ansible_architecture == 'amd64' %}pc
+          {% elif 'tegra' in ansible_kernel %}jetson
+          {% else %}pi{% endif %}
+          
+    - name: B. Print detected hardware for verification
+      ansible.builtin.debug:
+        msg: "Detected target hardware: {{ target_hardware }}"
+
+    - name: 1. Create /opt/logiedge directory if not present
+      file:
+        path: "{{ target_dir }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+
+    - name: 2. Copy new model file to /opt/logiedge/model.tflite
+      copy:
+        src: "{{ model_src }}"
+        dest: "{{ target_dir }}/model.tflite"
+        mode: '0644'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+
+    - name: 3. Copy updated reference_dist.json
+      copy:
+        src: "{{ ref_src }}"
+        dest: "{{ target_dir }}/reference_dist.json"
+        mode: '0644'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+
+    - name: 4. Stop the running inference container if running
+      community.docker.docker_container:
+        name: logiedge-inference-node
+        image: logiedge-inference:latest  # Ensure this matches your actual image name
+        state: absent
+
+    - name: 5. Build and tag inference container locally for target hardware
+      community.docker.docker_image:
+        build:
+          path: "/home/{{ target_user }}/MLontheEdge_Assignment_Group_13/inference"
+          dockerfile: Dockerfile
+        name: "logiedge-inference-{{ target_hardware }}"
+        tag: "latest"
+        source: build
+        state: present
+
+    - name: 6. Start inference container with hardware optimizations
+      community.docker.docker_container:
+        name: logiedge-inference-node
+        image: "logiedge-inference-{{ target_hardware }}:latest"
+        runtime: "{{ 'nvidia' if target_hardware == 'jetson' else omit }}"
+        state: started
+        restart_policy: always
+        network_mode: host
+        env:
+          PYTHONUNBUFFERED: "1"
+          MODEL_PATH: "/app/model.tflite"
+          MQTT_BROKER: "localhost"
+        volumes:
+          - "{{ target_dir }}/model.tflite:/app/model.tflite:ro"
+          - "{{ target_dir }}/reference_dist.json:/app/reference_dist.json:ro"
+
+    - name: 7. Wait 15 seconds and verify container is running
+      pause:
+        seconds: 15
+
+    - name: 8. Create systemd service for Data Preprocessor
+      copy:
+        dest: /etc/systemd/system/logiedge-preprocessor.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=LogiEdge MQTT Data Preprocessor
+          After=network.target mosquitto.service
+
+          [Service]
+          Type=simple
+          User={{ target_user }}
+          WorkingDirectory=/home/{{ target_user }}/MLontheEdge_Assignment_Group_13/data_pipeline
+          # Executes using the virtual environment python exactly like you did manually
+          ExecStart=/home/{{ target_user }}/MLontheEdge_Assignment_Group_13/data_pipeline/venv/bin/python preprocessing.py
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: 9. Create systemd service for MLOps Drift Monitor
+      copy:
+        dest: /etc/systemd/system/logiedge-monitor.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=LogiEdge PSI Drift Monitor
+          After=network.target mosquitto.service
+
+          [Service]
+          Type=simple
+          User={{ target_user }}
+          WorkingDirectory=/home/{{ target_user }}/MLontheEdge_Assignment_Group_13/monitoring
+          # Shares the data_pipeline venv exactly like your manual setup
+          ExecStart=/home/{{ target_user }}/MLontheEdge_Assignment_Group_13/data_pipeline/venv/bin/python drift_monitor.py
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: 10. Reload systemd daemon to recognize new services
+      systemd:
+        daemon_reload: yes
+
+    - name: 11. Enable and start LogiEdge foreground services
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: restarted
+      loop:
+        - logiedge-preprocessor
+        - logiedge-monitor
