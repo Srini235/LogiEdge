@@ -1,0 +1,13 @@
+### Task A1: Constraint Analysis
+
+**Bandwidth**
+Continuous cloud transmission of high-frequency sensor data is economically unscalable for FreightBridge. Generating 1 Hz temperature (4 bytes) and 500 Hz 3-axis vibration (12 bytes) produces approximately 518.7 MB of data per truck, per day. Across a scaled fleet of 265 vehicles, this totals 128 GB daily. At a transmission cost of ₹0.10/MB, a cloud-dependent architecture incurs an OpEx of ₹13,110 per day purely to transmit nominal telemetry. In contrast, an Edge AI architecture transmits only state classifications and discrete alerts (averaging 200 updates or ~3.4 KB per day). This 99.9% bandwidth reduction drops daily transmission costs to ₹0.08, transforming a severe financial bottleneck into a negligible expense.
+
+**Latency**
+A refrigeration unit failure increases cargo temperature by 1°C per minute, necessitating a strict 90-second safety SLA for anomaly detection. While the physical fiber propagation from the Nashik–Aurangabad route to a central cloud server (e.g., Pune) adds merely ~5 ms of round-trip time, network routing and 4G Radio Access Network (RAN) overhead push the typical cloud RTT to 95–205 ms. Crucially, the system requires three consecutive 30-second sliding windows (at a 10-second step) to confirm a failure. Edge inference processes these windows locally in milliseconds, confirming the anomaly and triggering an alert at exactly $t=50.02$ seconds. This deterministically satisfies the SLA with a 40-second safety margin, entirely bypassing cellular jitter.
+
+**Connectivity**
+The Nashik–Aurangabad route features seven documented locations where cellular connectivity drops completely for 35 to 90 minutes. During these dead zones, a cloud-only pipeline is entirely severed. If a failure occurs, the unmonitored temperature breach will ruin the cargo before connectivity returns, risking repeat incidents like the recent ₹28 lakh spoilage event. LogiEdge’s edge architecture handles this by running the inference loop locally and buffering alerts to an on-device SQLite database. The driver is alerted immediately via the cab dashboard, and the logs asynchronously sync to the cloud once 4G coverage is restored. 
+
+**Privacy**
+FreightBridge’s pharmaceutical clients require strict chain-of-custody documentation and verifiable proof against unauthorized data access. Transmitting raw thermal and vibration telemetry exposes high-value operational data to interception. On-device inference ensures raw cargo condition data never leaves the vehicle's physical perimeter; only abstracted, non-sensitive state classifications are transmitted to the cloud.

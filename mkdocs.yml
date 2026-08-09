@@ -1,10 +1,26 @@
 site_name: ML on the Edge - Assignment Group 13
 site_description: Documentation for the MLontheEdge Assignment
+docs_dir: docs
 nav:
   - Home: index.md
   - Project Overview: project_overview.md
   - Repository Structure: structure.md
   - Build Instructions: build_instructions.md
+  - Assignment Docs:
+      - Assignment README: assignment/README.md
+      - Scenario Architecture:
+          - Constraint Analysis: assignment/constraint_analysis.md
+          - Constraint Analysis Shortened: assignment/constraint_analysis_shortened.md
+      - Data Pipeline:
+          - Commands: assignment/commands.md
+          - Data Fusion Justification: assignment/data_fusion_justification.md
+          - MQTT Architecture: assignment/mqtt_architecture.md
+      - Deployment:
+          - OTA Strategy Analysis: assignment/ota_strategy_analysis.md
+      - Hardware:
+          - Hardware Justification: assignment/hardware_justification.md
+      - Optimization:
+          - Deployment Recommendation: assignment/deployment_recommendation.md
 
 plugins:
   - search

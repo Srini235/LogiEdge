@@ -1,0 +1,1 @@
+"listener 1883`nallow_anonymous true" | Out-File -FilePath dev.conf; mosquitto.exe -c dev.conf -v
