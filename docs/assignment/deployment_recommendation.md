@@ -25,7 +25,7 @@ The 90-second SLA for anomaly detection translates to:
 - **Per-inference budget:** The 90-second window is for detecting sustained anomalies (3 consecutive Critical readings)
 - **Each inference cycle:** ~1 inference per feature window (~1 Hz)
 - **Latency requirement:** Each inference must complete within **1 second** to detect 3 consecutive anomalies within SLA
-- **Our models:** All variants complete in **< 1 ms** — **well within SLA** ✅
+- **Our models:** All variants complete in **< 1 ms** — well within SLA.
 
 **Conclusion:** All models satisfy the latency SLA by a factor of 1000x+.
 
@@ -37,9 +37,9 @@ For cold-chain monitoring, we assume an **ARM Cortex-M4/M7 or similar MCU** edge
 
 | Constraint | Typical Value | Model Requirement |
 |------------|---------------|------------------|
-| Flash Storage | 256 KB - 2 MB | M2: 4.92 KB ✅ |
-| SRAM | 64 KB - 512 KB | M2: ~10 KB ✅ |
-| Model Size | < 200 KB recommended | 4.92 KB ✅ |
+| Flash Storage | 256 KB - 2 MB | M2: 4.92 KB |
+| SRAM | 64 KB - 512 KB | M2: ~10 KB |
+| Model Size | < 200 KB recommended | 4.92 KB |
 
 All models fit comfortably in edge device constraints.
 
@@ -55,7 +55,7 @@ For safety-critical cold-chain applications, **Class 2 (Critical) recall is para
 | M2 (PTQ INT8) | 99.49% | ~98% (estimated) |
 | M3 (Pruned+INT8) | 99.49% | ~97% (estimated) |
 
-**Critical requirement:** Recall > 95% ✅
+**Critical requirement:** Recall > 95%
 
 M2 (INT8) maintains >95% Critical recall due to:
 - Minimal accuracy loss (0.51%)
@@ -66,7 +66,7 @@ M2 (INT8) maintains >95% Critical recall due to:
 
 ## Final Recommendation
 
-### 🏆 Deploy M2 (PTQ INT8)
+### Deploy M2 (PTQ INT8)
 
 **Rationale:**
 

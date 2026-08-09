@@ -28,14 +28,14 @@ Cost: 23.8 MB × ₹0.10/MB = ₹2.38 per update cycle
 ```
 
 ### Pros
-- ✅ Simplest to implement
-- ✅ Fastest full deployment
-- ✅ Uniform model across fleet
+- Simplest to implement
+- Fastest full deployment
+- Uniform model across fleet
 
 ### Cons
-- ❌ No rollback capability
-- ❌ No early warning if model has issues
-- ❌ All trucks affected by any bugs
+- No rollback capability
+- No early warning if model has issues
+- All trucks affected by any bugs
 
 ---
 
@@ -57,14 +57,14 @@ Cost: 23.8 MB × ₹0.10/MB = ₹2.38 per update cycle
 ```
 
 ### Pros
-- ✅ Limited exposure to bugs (only 10 trucks)
-- ✅ Real-world validation before full rollout
-- ✅ Easy rollback (just don't proceed to full rollout)
+- Limited exposure to bugs (only 10 trucks)
+- Real-world validation before full rollout
+- Easy rollback (just don't proceed to full rollout)
 
 ### Cons
-- ❌ Higher operational complexity
-- ❌ Same total bandwidth (staggered, not saved)
-- ❌ Requires monitoring infrastructure
+- Higher operational complexity
+- Same total bandwidth (staggered, not saved)
+- Requires monitoring infrastructure
 
 ---
 
@@ -87,14 +87,14 @@ Cost: 23.8 MB × ₹0.10/MB = ₹2.38 per update cycle
 - Adds latency overhead
 
 ### Pros
-- ✅ Zero risk to operations
-- ✅ A/B testing in production
-- ✅ Maximum safety
+- Zero risk to operations
+- A/B testing in production
+- Maximum safety
 
 ### Cons
-- ❌ Highest compute cost (2x inference)
-- ❌ Same bandwidth as full replacement
-- ❌ Not suitable for safety-critical cold-chain (delays matter)
+- Highest compute cost (2x inference)
+- Same bandwidth as full replacement
+- Not suitable for safety-critical cold-chain (delays matter)
 
 ---
 
@@ -110,7 +110,7 @@ Cost: 23.8 MB × ₹0.10/MB = ₹2.38 per update cycle
 
 ---
 
-## 🏆 RECOMMENDATION: Canary Release (10 trucks)
+## Recommendation: Canary Release (10 trucks)
 
 ### Rationale for Cold-Chain Safety-Critical Systems
 
@@ -154,9 +154,9 @@ Cost: 23.8 MB × ₹0.10/MB = ₹2.38 per update cycle
 | Factor | Full | Canary | Shadow | Winner |
 |--------|------|--------|--------|--------|
 | Bandwidth | 23.8 MB | 23.8 MB | 23.8 MB | Tie |
-| Safety Risk | 🔴 High | 🟢 Low | 🟢 Low | Canary |
-| Rollback Complexity | 🔴 Hard | 🟢 Easy | 🟢 Easy | Canary |
-| Operational Overhead | 🟢 Low | 🟡 Medium | 🔴 High | Full |
-| Cold-Chain Suitability | ❌ No | ✅ Yes | ⚠️ Partial | **Canary** |
+| Safety Risk | High | Low | Low | Canary |
+| Rollback Complexity | Hard | Easy | Easy | Canary |
+| Operational Overhead | Low | Medium | High | Full |
+| Cold-Chain Suitability | No | Yes | Partial | **Canary** |
 
 **Final Recommendation:** Deploy via **Canary Release** with 10 trucks for 1 week monitoring before full fleet rollout.
