@@ -39,4 +39,3 @@ This docs-as-code site is organized as a user manual for the assignment. Use the
 - Use the links above to jump to the most important content.
 - Each page is part of the assignment documentation, and the structure follows the standard project design flow.
 
-> If you want, I can also add a dedicated `User Manual` page with a shorter summary for each section.
