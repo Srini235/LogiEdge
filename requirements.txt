@@ -1,0 +1,16 @@
+# Core project dependencies
+numpy<2.0.0
+paho-mqtt==2.1.0
+tensorflow
+scikit-learn
+psutil
+matplotlib
+
+# Documentation
+mkdocs
+mkdocs-material
+
+# Edge runtime
+# Use tflite-runtime on ARM targets when available, otherwise TensorFlow Lite through tensorflow
+# For deployment on Raspberry Pi/Jetson, consider replacing tensorflow with the appropriate runtime package.
+tflite-runtime
